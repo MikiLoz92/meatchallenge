@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mikiloz.meat.MainActivity">
+    <item
+        android:id="@+id/action_language"
+        android:title="@string/action_language"
+        app:showAsAction="never" >
+
+        <menu>
+            <item
+                android:id="@+id/action_language_english"
+                android:title="@string/action_language_english"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/action_language_spanish"
+                android:title="@string/action_language_spanish"
+                app:showAsAction="never" />
+        </menu>
+
+    </item>
+</menu>

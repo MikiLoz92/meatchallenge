@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Carnicerías ACME</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="about_acme_title">Acerca de ACME</string>
+    <string name="about_acme">En las carnicerías ACME ponemos a su disposición las mejores carnes, embutidos y platos preparados, entre otras delicias gourmet. Si tienen un evento y quieren deleitar a sus invitados con unos productos sanos, frescos y sabrosos, contacten con nosotros.</string>
+    <string name="alert_location_permission">Please, accept the Location permission dialog that appears when you enter the application so we can provide some recommended places to you using the map.</string>
+    <string name="visit_title">Visítenos</string>
+    <string name="meat_hashtag">carne</string>
+    <string name="visit">Visítenos en cualquiera de nuestros establecimientos cercanos a usted:</string>
+    <string name="traditional_cut_title">Corte tradicional</string>
+    <string name="traditional_cut">No tenemos bandejas preparadas. Nuestro corte es artesano y profesional.</string>
+    <string name="delivery_title">Reparto a domicilio</string>
+    <string name="delivery">Realicen su pedido hoy mismo y mañana lo tendrán listo en su domicilio.</string>
+    <string name="alert_location_permission_title">Ubicación</string>
+    <string name="action_language_english">English</string>
+    <string name="action_language_spanish">Español</string>
+    <string name="action_language">Idioma</string>
+</resources>
