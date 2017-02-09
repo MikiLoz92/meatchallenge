@@ -1,15 +1,12 @@
 package com.mikiloz.meat;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,7 +25,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
@@ -37,8 +33,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -48,23 +42,18 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 import com.mikiloz.meat.data.Place;
 import com.mikiloz.meat.data.Tweet;
 import com.mikiloz.meat.utils.HttpUtilities;
-import com.mikiloz.meat.utils.LanguageContextWrapper;
 import com.mikiloz.meat.utils.ScrollableMapView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -82,30 +71,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TweetsAdapter tweetsAdapter;
 
     private static final String PLACES_BASE_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
+    private static final String MEAT_SHOP_SEARCH_TOKEN = "carniceria";
     private static final int GPS_REQUEST_CODE = 1;
     private static final int MAP_SEARCH_RADIUS = 500;
 
     private final List<Place> places = new ArrayList<>();
 
-    private String languageCode = "es";
-
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LanguageContextWrapper.wrap(newBase, languageCode));
-        System.out.println("Attaching to " + languageCode);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        languageCode = (savedInstanceState != null) ? savedInstanceState.getString("language") : "es";
-        Locale locale = new Locale(languageCode);
-        Locale.setDefault(locale);
-        Configuration config = getBaseContext().getResources().getConfiguration();
-        config.locale = locale;
-        getBaseContext().getResources().updateConfiguration(config, getBaseContext().getResources().getDisplayMetrics());
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -128,8 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         tweetsRecyclerView = (RecyclerView) findViewById(R.id.twitter_recyclerview);
         tweetsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        LinearLayout twitterLayout = (LinearLayout) findViewById(R.id.twitter_layout);
-        twitterLayout.setVisibility(View.VISIBLE);
+        requestTweets();
     }
 
     @Override
@@ -153,30 +127,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        // Swap languages based on the user selection
         if (id == R.id.action_language) {
             return true;
         } else if (id == R.id.action_language_english) {
-            Intent intent = getIntent();
-            intent.putExtra("language", "en");
-            finish();
-            startActivity(intent);
+            setLocale("en");
         } else if (id == R.id.action_language_spanish) {
-            Intent intent = getIntent();
-            intent.putExtra("language", "es");
-            finish();
-            startActivity(intent);
+            setLocale("es");
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void setLocale(String lang) {
+    /**
+     * Request tweets from the Twitter API, using the {@link HttpUtilities} utility class.
+     */
+    private void requestTweets() {
+        final RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+        HttpUtilities.Twitter.requestBearerToken(queue,
+                getString(R.string.twitter_api_consumer_key),
+                getString(R.string.twitter_api_secret_key),
+                new BearerTokenResponseListener(queue),
+                new TwitterErrorResponseListener());
+    }
+
+    /**
+     * Set the locale for the entire application and restart the Activity to see the changes.
+     * @param lang The language locale code (2 letter code, like "es" or "en").
+     */
+    private void setLocale(String lang) {
         Locale myLocale = new Locale(lang);
         Resources res = getResources();
         DisplayMetrics dm = res.getDisplayMetrics();
@@ -184,42 +165,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         conf.locale = myLocale;
         res.updateConfiguration(conf, dm);
         Intent refresh = new Intent(this, MainActivity.class);
-        startActivity(refresh);
         finish();
+        startActivity(refresh);
     }
 
-    private void changeLocale(String localeCode) {
-        Locale locale = new Locale(localeCode);
-        Locale.setDefault(locale);
-        Configuration config = new Configuration();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            config.setLocale(locale);
-        } else {
-            config.locale = locale;
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1)
-            getApplicationContext().getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-
-        recreate();
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
+    /**
+     * Called when the {@link GoogleMap} has finished loading.
+     * @param googleMap The {@link GoogleMap} instance.
+     */
+    @Override public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        /*LatLng sydney = new LatLng(-34, 151);
-        map.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
 
         MapsInitializer.initialize(this);
         mapView.onResume();
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
+    /**
+     * Called when the application is done connecting to the Google API.
+     */
+    @Override public void onConnected(@Nullable Bundle bundle) {
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -228,45 +192,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        onConnectedAndPermissionsGranted();
+        onGoogleApiConnectedAndPermissionsGranted();
 
-        /*LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+    }
+
+    /**
+     * Called when the application has suspended the process of connecting to the Google API.
+     */
+    @Override public void onConnectionSuspended(int i) {
+
+    }
+
+    /**
+     * Called when the application has failed connecting to the Google API.
+     */
+    @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    /**
+     * Called when the permissions request's result has been obtained.
+     * @param requestCode The request code.
+     * @param permissions The requested permissions.
+     * @param grantResults The grant results for the corresponding permissions.
+     */
+    @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) onGoogleApiConnectedAndPermissionsGranted();
+    }
+
+    /**
+     * Called when there is connection, permissions granted, and it's now possible to make requests
+     * to the Google API.
+     */
+    private void onGoogleApiConnectedAndPermissionsGranted() {
         try {
-        } catch (SecurityException ex) {
-            final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-            alertDialog.setTitle(getString(R.string.alert_location_permission_title));
-            alertDialog.setMessage(getString(R.string.alert_location_permission));
-            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    alertDialog.dismiss();
-                }
-            });
-            alertDialog.show();
-        }*/
-
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1) onConnectedAndPermissionsGranted();
-    }
-
-    private void onConnectedAndPermissionsGranted() {
-        try {
-
-            // Map
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
             double lat = 0, lon = 0;
             if (lastLocation != null) {
@@ -276,62 +235,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             System.out.println("Last location: " + lat + ", " + lon);
             map.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lon)));
             if (lastLocation != null) populateMap();
-
-            // Tweets
-            if (lastLocation != null) {
-                final RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                HttpUtilities.Twitter.requestBearerToken(queue, getString(R.string.twitter_api_consumer_key), getString(R.string.twitter_api_secret_key), new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            String bearerToken = new JSONObject(response).getString("access_token");
-                            System.out.println("BEARER: " + bearerToken);
-                            HttpUtilities.Twitter.searchTweets(queue, getString(R.string.meat_hashtag), bearerToken, new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    try {
-                                        JSONArray statuses = new JSONObject(response).getJSONArray("statuses");
-                                        List<Tweet> tweets = new ArrayList<>();
-                                        for (int i = 0; i < statuses.length(); i++) {
-                                            JSONObject status = statuses.getJSONObject(i);
-                                            String text = status.getString("text");
-                                            String user = status.getJSONObject("user").getString("screen_name");
-                                            System.out.println("@" + user + ": " + text);
-                                            tweets.add(new Tweet(user, text));
-                                        }
-                                        tweetsAdapter = new TweetsAdapter(tweets);
-                                        tweetsRecyclerView.setAdapter(tweetsAdapter);
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }, new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    System.out.println("ERROR");
-                                    System.out.println(new String(error.networkResponse.data));
-                                }
-                            });
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                    }
-                });
-            }
         } catch (SecurityException ex) {
             showGPSPermissionAlertDialog();
         }
     }
 
+    /**
+     * Show the GPS alert dialog
+     */
     private void showGPSPermissionAlertDialog() {
+        showAlertDialog(getString(R.string.alert_location_permission_title), getString(R.string.alert_location_permission));
+    }
+
+    /**
+     * Show the Twitter error alert dialog
+     */
+    private void showTwitterErrorAlertDialog() {
+        showAlertDialog(getString(R.string.alert_twitter_title), getString(R.string.alert_twitter));
+    }
+
+    /**
+     * Show an alert dialog
+     * @param title The title of the dialog
+     * @param message The message of the dialog
+     */
+    private void showAlertDialog(String title, String message) {
         final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle(getString(R.string.alert_location_permission_title));
-        alertDialog.setMessage(getString(R.string.alert_location_permission));
+        alertDialog.setTitle(title);
+        alertDialog.setMessage(message);
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -341,17 +272,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertDialog.show();
     }
 
+    /**
+     * Populate the {@link MapView} with some nearby meat shops.
+     */
     private void populateMap() {
-        RequestParams rp = new RequestParams();
-        rp.add("location", String.valueOf(lastLocation.getLatitude()) + "," + String.valueOf(lastLocation.getLongitude()));
-        //rp.add("location", "41.3736825,2.1124893"); // false location :-B
-        rp.add("radius", String.valueOf(MAP_SEARCH_RADIUS));
-        rp.add("types", "convenience_store|grocery_or_supermarket|store|shopping_mall");
-        rp.add("name", "carniceria");
-        rp.add("key", getString(R.string.google_maps_api_key));
-        HttpUtilities.get(PLACES_BASE_URL, rp, new PlacesJSONHandler());
+        HttpUtilities.Places.searchMeatShops(lastLocation.getLatitude(), lastLocation.getLongitude(),
+                 MAP_SEARCH_RADIUS, MEAT_SHOP_SEARCH_TOKEN, getString(R.string.google_api_key),
+                new PlacesJSONHandler());
     }
 
+    /**
+     * A JSON handler that will populate the map with different meat shops
+     */
     private class PlacesJSONHandler extends JsonHttpResponseHandler {
         @Override
         public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
@@ -381,6 +313,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /**
+     * RecyclerView adapter that will populate the twitter list with fresh, new tweets about meat.
+     */
     private class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder> {
 
         List<Tweet> tweets = new ArrayList<>();
@@ -401,28 +336,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Tweet tweet = tweets.get(position);
             String text = "@" + tweet.user + ": " + tweet.tweet;
             final SpannableStringBuilder str = new SpannableStringBuilder(text);
-
-
-
-            /*Twitter twitter = TwitterFactory.getSingleton();
-            Query query = new Query("source:twitter4j yusukey");
-            QueryResult result = twitter.search(query);
-            TwitterListener listener = new TwitterAdapter() {
-                @Override
-                public void searched(QueryResult queryResult) {
-                    super.searched(queryResult);
-                }
-
-                @Override public void updatedStatus(Status status) {
-                    System.out.println("Successfully updated the status to [" +
-                            status.getText() + "].");
-                }
-            };
-            // The factory instance is re-useable and thread safe.
-            AsyncTwitterFactory factory = new AsyncTwitterFactory();
-            AsyncTwitter asyncTwitter = factory.getInstance();
-            asyncTwitter.addListener(listener);
-            asyncTwitter.updateStatus(args[0]);*/
             str.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, tweet.user.length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             holder.text.setText(str);
         }
@@ -443,5 +356,57 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
     }
+
+    private class BearerTokenResponseListener implements Response.Listener<String> {
+
+        private RequestQueue queue;
+        public BearerTokenResponseListener(RequestQueue queue) {
+            this.queue = queue;
+        }
+
+        @Override
+        public void onResponse(String response) {
+            try {
+                String bearerToken = new JSONObject(response).getString("access_token");
+                System.out.println("BEARER: " + bearerToken);
+                HttpUtilities.Twitter.searchTweets(queue, getString(R.string.meat_hashtag),
+                        bearerToken, new TweetsResponseListener(),
+                        new TwitterErrorResponseListener());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class TwitterErrorResponseListener implements Response.ErrorListener {
+
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            showTwitterErrorAlertDialog();
+        }
+    }
+
+    private class TweetsResponseListener implements Response.Listener<String> {
+
+        @Override
+        public void onResponse(String response) {
+            try {
+                JSONArray statuses = new JSONObject(response).getJSONArray("statuses");
+                List<Tweet> tweets = new ArrayList<>();
+                for (int i = 0; i < statuses.length(); i++) {
+                    JSONObject status = statuses.getJSONObject(i);
+                    String text = status.getString("text");
+                    String user = status.getJSONObject("user").getString("screen_name");
+                    System.out.println("@" + user + ": " + text);
+                    tweets.add(new Tweet(user, text));
+                }
+                tweetsAdapter = new TweetsAdapter(tweets);
+                tweetsRecyclerView.setAdapter(tweetsAdapter);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
 

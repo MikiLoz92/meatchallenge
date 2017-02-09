@@ -1,21 +1,26 @@
 <resources>
-    <string name="app_name">Carnicerías ACME</string>
-    <string name="action_language">Language</string>
+    <string name="app_name">ACME</string>
+    <string name="action_language">Idioma</string>
     <string name="action_language_spanish">Spanish</string>
     <string name="action_language_english">English</string>
-    <string name="about_acme_title">About ACME Meat</string>
+    <string name="about_acme_title">Acerca de ACME</string>
     <string name="about_acme">En las carnicerías ACME ponemos a su disposición las mejores carnes, embutidos y platos preparados, entre otras delicias gourmet. Si tienen un evento y quieren deleitar a sus invitados con unos productos sanos, frescos y sabrosos, contacten con nosotros.</string>
     <string name="delivery_title">Reparto a domicilio</string>
     <string name="delivery">Realicen su pedido hoy mismo y mañana lo tendrán listo en su domicilio.</string>
     <string name="traditional_cut_title">Corte tradicional</string>
     <string name="traditional_cut">No tenemos bandejas preparadas. Nuestro corte es artesano y profesional.</string>
-    <string name="alert_location_permission">Please, accept the Location permission dialog that appears when you enter the application so we can provide some recommended places to you using the map.</string>
+    <string name="alert_location_permission">Por favor, pulse Aceptar en el diálogo de confirmación de ubicación que aparece cuando entra en la aplicación, para que podamos enseñarle establecimientos cercanos en el mapa.</string>
     <string name="alert_location_permission_title">Location</string>
     <string name="visit_title">Visítenos</string>
     <string name="visit">Visítenos en cualquiera de nuestros establecimientos cercanos a usted:</string>
 
-    <string name="google_maps_api_key">AIzaSyCOuJPZrUvehcsKcfFfuQH8uEcTXR5_0Dc</string>
+    <string name="google_api_key">AIzaSyCOuJPZrUvehcsKcfFfuQH8uEcTXR5_0Dc</string>
     <string name="twitter_api_consumer_key">y1n2hNAUXcdkji2BGtCEZRCuL</string>
     <string name="twitter_api_secret_key">dX00OK1XebMNGbouS9xM1BaNi2l9ypWUUDyuhvHslRT1lqrj9a</string>
-    <string name="meat_hashtag">%23meat</string>
+    <string name="meat_hashtag">carne</string>
+    <string name="alert_twitter">Hubo un error al conectarse con los servicios de Twitter.</string>
+    <string name="alert_twitter_title">Twitter</string>
+    <string name="tweets_title">Vea qué opinan</string>
+    <string name="tweets">¡Estos tweets le mostrarán de primera mano lo que la gente opina de nuestra carne!</string>
+    <string name="action_settings">Ajustes</string>
 </resources>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ACME Meat</string>
+    <string name="app_name">ACME</string>
     <string name="action_settings">Settings</string>
-    <string name="about_acme_title">About ACME Meat</string>
-    <string name="about_acme">En las carnicerías ACME ponemos a su disposición las mejores carnes, embutidos y platos preparados, entre otras delicias gourmet. Si tienen un evento y quieren deleitar a sus invitados con unos productos sanos, frescos y sabrosos, contacten con nosotros.</string>
-    <string name="alert_location_permission">Please, accept the Location permission dialog that appears when you enter the application so we can provide some recommended places to you using the map.</string>
-    <string name="visit">Visit us at the location of your convenience</string>
+    <string name="about_acme_title">About ACME</string>
+    <string name="about_acme">At ACME meat shops we put at your disposal  the best meat and prepared dishes, among other gourmet delicacies. If you are hosting an event and want to impress your guests with the finest, healthiets and tastiests product, contact us.</string>
+    <string name="alert_location_permission">Please, accept the Location permission dialog that appears when you enter the application so we can show you where the nearest shops are located using the map.</string>
+    <string name="visit">Visit us at any location of your convenience:</string>
     <string name="visit_title">Visit</string>
     <string name="meat_hashtag">meat</string>
     <string name="alert_location_permission_title">Location</string>
@@ -16,4 +16,8 @@
     <string name="delivery_title">Delivery</string>
     <string name="traditional_cut">We do not have plastic wrapped bundles. Our cut is crafted with care and professional.</string>
     <string name="traditional_cut_title">Traditional cut</string>
+    <string name="alert_twitter">There was an error while connecting to the Twitter services.</string>
+    <string name="alert_twitter_title">Twitter</string>
+    <string name="tweets_title">See it from others</string>
+    <string name="tweets">These tweets will show you what the people think about our meat!</string>
 </resources>

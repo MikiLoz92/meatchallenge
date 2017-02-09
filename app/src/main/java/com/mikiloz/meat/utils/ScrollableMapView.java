@@ -38,7 +38,6 @@ public class ScrollableMapView extends MapView {
                 break;
         }
 
-        // Handle MapView's touch events.
         super.dispatchTouchEvent(ev);
         return true;
     }

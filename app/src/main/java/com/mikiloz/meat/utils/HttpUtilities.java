@@ -9,7 +9,10 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.mikiloz.meat.MainActivity;
+import com.mikiloz.meat.R;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -25,6 +28,25 @@ public abstract class HttpUtilities {
 
     public static void get(String baseURL, RequestParams params, AsyncHttpResponseHandler responseHandler) {
         client.get(baseURL, params, responseHandler);
+    }
+
+    public static class Places {
+
+        private static String endpoint = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
+
+        public static void searchMeatShops(double latitude, double longitude, int radius,
+                                           String searchToken, String apiKey,
+                                           JsonHttpResponseHandler responseHandler) {
+
+            RequestParams rp = new RequestParams();
+            rp.add("location", String.valueOf(latitude) + "," + String.valueOf(longitude));
+            rp.add("radius", String.valueOf(radius));
+            rp.add("types", "convenience_store|grocery_or_supermarket|store|shopping_mall");
+            rp.add("name", searchToken);
+            rp.add("key", apiKey);
+            HttpUtilities.get(endpoint, rp, responseHandler);
+        }
+
     }
 
     public static class Twitter {
